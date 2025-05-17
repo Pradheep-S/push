@@ -1,0 +1,310 @@
+/* Auth.css - Light theme, responsive, e-commerce aesthetic */
+
+/* General Styles */
+.auth-body {
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.auth-wrapper {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #F3F4F6; /* Light gray background for light theme */
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.auth-container {
+    display: flex;
+    width: 800px;
+    max-width: 95%; /* Slightly narrower on mobile */
+    height: 500px;
+    background: #FFFFFF; /* White background for clean look */
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    border: 1px solid #E5E7EB; /* Light gray border */
+    position: relative;
+    overflow: hidden;
+}
+
+/* Left and Right Panels */
+.auth-left, .auth-right {
+    width: 50%;
+    height: 100%;
+    transition: transform 0.6s ease-in-out;
+}
+
+.auth-left {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: #F9FAFB; /* Slightly off-white for depth */
+    color: #1F2937; /* Dark gray text */
+    z-index: 2;
+    padding: 20px;
+}
+
+.auth-right {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #FFFFFF; /* White for form area */
+    z-index: 1;
+}
+
+/* Sliding Animations */
+.auth-container.signup .auth-left {
+    transform: translateX(100%);
+}
+
+.auth-container.signup .auth-right {
+    transform: translateX(-100%);
+}
+
+.auth-container:not(.signup) .auth-left {
+    transform: translateX(0);
+}
+
+.auth-container:not(.signup) .auth-right {
+    transform: translateX(0);
+}
+
+/* Left Panel Content */
+.auth-brand-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 2.25rem; /* Slightly smaller for balance */
+    font-weight: 600;
+    color: #1F2937; /* Dark gray for contrast */
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 1rem;
+}
+
+.auth-brand-text {
+    font-size: 1.1rem;
+    color: #4B5563; /* Medium gray for secondary text */
+    text-align: center;
+}
+
+.auth-toggle-link {
+    color: #FF6F00; /* Vibrant orange for links */
+    cursor: pointer;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.auth-toggle-link:hover {
+    color: #E55F00; /* Darker orange on hover */
+}
+
+/* Right Panel Form */
+.auth-form {
+    width: 85%;
+    max-width: 320px; /* Slightly wider for better spacing */
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem; /* 20px */
+}
+
+.auth-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.75rem; /* Slightly smaller for mobile */
+    font-weight: 600;
+    color: #1F2937; /* Dark gray */
+    text-align: center;
+    margin-bottom: 0.5rem;
+}
+
+.auth-error {
+    color: #EF4444; /* Red for errors */
+    font-size: 0.875rem; /* 14px */
+    text-align: center;
+    margin: -0.5rem 0 0.5rem;
+}
+
+/* Form Groups */
+.auth-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem; /* 8px */
+}
+
+.auth-label {
+    font-size: 0.95rem;
+    color: #1F2937; /* Dark gray */
+    font-weight: 500;
+}
+
+HYauth-input {
+    padding: 0.75rem; /* 12px */
+    border: 1px solid #D1D5DB; /* Light gray border */
+    border-radius: 6px;
+    background: #F9FAFB; /* Off-white input background */
+    color: #1F2937; /* Dark gray text */
+    font-size: 1rem;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.auth-input:focus {
+    outline: none;
+    border-color: #FF6F00; /* Orange focus ring */
+    box-shadow: 0 0 0 3px rgba(255, 111, 0, 0.2); /* Subtle focus glow */
+}
+
+/* Checkbox */
+.auth-checkbox {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.75rem; /* 12px */
+}
+
+.auth-checkbox input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #FF6F00; /* Orange checkbox */
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+/* Button */
+.btn-primary {
+    padding: 0.75rem 1.5rem; /* 12px 24px */
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    background: #FF6F00; /* Vibrant orange CTA */
+    color: #FFFFFF;
+    box-shadow: 0 2px 8px rgba(255, 111, 0, 0.3);
+    transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: #E55F00; /* Darker orange */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 111, 0, 0.4);
+}
+
+.btn-primary:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 111, 0, 0.3);
+}
+
+/* Shapes for Background Decoration (Light Theme) */
+.auth-container::before,
+.auth-container::after {
+    content: '';
+    position: absolute;
+    background: rgba(255, 111, 0, 0.1); /* Subtle orange for light theme */
+    border-radius: 50%;
+    animation: float-rotate-scale 10s infinite ease-in-out;
+}
+
+.auth-container::before {
+    width: 120px;
+    height: 120px;
+    top: -40px;
+    left: -40px;
+    animation-duration: 8s;
+}
+
+.auth-container::after {
+    width: 100px;
+    height: 100px;
+    bottom: -50px;
+    right: -50px;
+    animation-duration: 12s;
+}
+
+/* Animation Keyframes */
+@keyframes float-rotate-scale {
+    0%, 100% {
+        transform: translateY(0) rotate(0) scale(1);
+    }
+    25% {
+        transform: translateY(-15px) rotate(45deg) scale(1.1);
+    }
+    50% {
+        transform: translateY(0) rotate(90deg) scale(1);
+    }
+    75% {
+        transform: translateY(15px) rotate(135deg) scale(0.9);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .auth-container {
+        flex-direction: column;
+        height: auto;
+        width: 90%;
+        padding: 1rem;
+    }
+
+    .auth-left, .auth-right {
+        width: 100%;
+        position: relative;
+        min-height: 200px; /* Ensure panels have minimum height */
+    }
+
+    .auth-container.signup .auth-left,
+    .auth-container.signup .auth-right,
+    .auth-container:not(.signup) .auth-left,
+    .auth-container:not(.signup) .auth-right {
+        transform: translateX(0); /* Disable sliding on mobile */
+    }
+
+    .auth-left {
+        padding: 2rem 1rem;
+    }
+
+    .auth-right {
+        padding: 1.5rem 1rem;
+    }
+
+    .auth-brand-title {
+        font-size: 1.75rem; /* Smaller for mobile */
+    }
+
+    .auth-title {
+        font-size: 1.5rem;
+    }
+
+    .auth-form {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .auth-input {
+        font-size: 0.95rem;
+    }
+
+    .btn-primary {
+        padding: 0.65rem 1.25rem;
+        font-size: 0.95rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .auth-container {
+        width: 900px; /* Slightly larger for desktop */
+    }
+
+    .auth-brand-title {
+        font-size: 2.5rem;
+    }
+
+    .auth-title {
+        font-size: 2rem;
+    }
+
+    .auth-form {
+        max-width: 350px;
+    }
+}
