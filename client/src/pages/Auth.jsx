@@ -10,6 +10,7 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [isAdminLogin, setIsAdminLogin] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -22,12 +23,11 @@ const Auth = () => {
           password,
         });
         console.log("Registration successful:", response.data);
-        // Instead of navigating, switch to login form
-        setIsSignup(false); // Switch to login mode
-        setUsername(""); // Clear username
-        setEmail(""); // Clear email
-        setPassword(""); // Clear password
-        setError(""); // Clear any errors
+        setIsSignup(false);
+        setUsername("");
+        setEmail("");
+        setPassword("");
+        setError("");
       } else {
         const endpoint = isAdminLogin
           ? "http://localhost:5000/api/auth/admin-login"
@@ -56,6 +56,10 @@ const Auth = () => {
     setEmail("");
     setPassword("");
     setIsAdminLogin(false);
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -105,14 +109,25 @@ const Auth = () => {
 
             <div className="auth-form-group">
               <label htmlFor="password" className="auth-label">Password</label>
-              <input
-                type="password"
-                id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="auth-input"
-                required
-              />
+              <div className="password-field">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="auth-input"
+                  required
+                  minLength={6}
+                />
+                <button 
+                  type="button" 
+                  className="toggle-password" 
+                  onClick={togglePasswordVisibility}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  <i className={`eye-icon ${showPassword ? "open" : "closed"}`}></i>
+                </button>
+              </div>
             </div>
 
             {!isSignup && (
