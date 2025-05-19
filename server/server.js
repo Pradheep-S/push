@@ -61,24 +61,39 @@ const CartSchema = new mongoose.Schema({
 
 const Cart = mongoose.model("Cart", CartSchema);
 
-// Middleware to verify JWT
+// Contact Message Schema
+const ContactMessageSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true },
+  phone: { type: String },
+  message: { type: String, required: true },
+  timestamp: { type: Date, default: Date.now },
+  status: { type: String, enum: ['new', 'read', 'replied'], default: 'new' }
+});
+
+const ContactMessage = mongoose.model("ContactMessage", ContactMessageSchema);
+
+// Middleware to verify JWT - Fix the incomplete middleware
 const verifyToken = (req, res, next) => {
   const token = req.headers["x-access-token"];
-  if (!token) return res.status(403).send("A token is required for authentication");
+  if (!token) {
+    return res.status(403).json({ error: "No token provided" });
+  }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+    req.userId = decoded.id;
+    req.userRole = decoded.role;
+    next();
   } catch (err) {
-    return res.status(401).send("Invalid Token");
+    return res.status(401).json({ error: "Unauthorized" });
   }
-  return next();
 };
 
 // Middleware to check admin role
 const isAdmin = (req, res, next) => {
-  if (req.user.role !== "admin") {
-    return res.status(403).send("Access denied: Admin privileges required");
+  if (req.userRole !== "admin") {
+    return res.status(403).json({ error: "Requires admin privileges" });
   }
   next();
 };
@@ -349,6 +364,99 @@ app.delete("/api/cart/remove/:productId", verifyToken, async (req, res) => {
     cart.updatedAt = new Date();
     await cart.save();
     res.json(cart);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Contact Form Endpoint
+app.post("/api/contact", async (req, res) => {
+  try {
+    const { name, email, message, phone } = req.body;
+    
+    // Validation
+    if (!name || !email || !message) {
+      return res.status(400).json({ error: "Name, email, and message are required" });
+    }
+    
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: "Please provide a valid email address" });
+    }
+    
+    // Phone validation (if provided)
+    if (phone) {
+      const phoneRegex = /^\d{10}$/;
+      if (!phoneRegex.test(phone.replace(/\D/g, ''))) {
+        return res.status(400).json({ error: "Please provide a valid 10-digit phone number" });
+      }
+    }
+    
+    // Create and save the message
+    const newMessage = new ContactMessage({
+      name,
+      email,
+      phone,
+      message,
+      timestamp: new Date(),
+      status: 'new'
+    });
+    
+    await newMessage.save();
+    
+    res.status(201).json({ success: true, message: "Your message has been sent successfully" });
+  } catch (err) {
+    console.error("Contact form error:", err);
+    res.status(500).json({ error: "Failed to send message. Please try again later." });
+  }
+});
+
+// Get Contact Messages (Admin Only)
+app.get("/api/contact/messages", verifyToken, isAdmin, async (req, res) => {
+  try {
+    const messages = await ContactMessage.find().sort({ timestamp: -1 });
+    res.json(messages);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Update Message Status (Admin Only)
+app.put("/api/contact/messages/:id", verifyToken, isAdmin, async (req, res) => {
+  try {
+    const { status } = req.body;
+    
+    if (!['new', 'read', 'replied'].includes(status)) {
+      return res.status(400).json({ error: "Invalid status" });
+    }
+    
+    const updatedMessage = await ContactMessage.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
+    
+    if (!updatedMessage) {
+      return res.status(404).json({ error: "Message not found" });
+    }
+    
+    res.json(updatedMessage);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Delete Contact Message (Admin Only)
+app.delete("/api/contact/messages/:id", verifyToken, isAdmin, async (req, res) => {
+  try {
+    const message = await ContactMessage.findByIdAndDelete(req.params.id);
+    
+    if (!message) {
+      return res.status(404).json({ error: "Message not found" });
+    }
+    
+    res.json({ message: "Message deleted successfully" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
