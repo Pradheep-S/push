@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios'; // Add this import
 import { useCheckout } from './CheckoutContext';
 import { useCart } from './CartContext';
 
@@ -51,24 +52,77 @@ const OrderSummary = ({ onBack }) => {
     if (checkoutData.paymentMethod === 'cod') {
       // Handle COD order
       try {
-        // Simulate API call to create order (replace with actual API call)
-        // await axios.post('http://localhost:5000/api/orders', { ...orderData }, { headers });
+        const token = localStorage.getItem("token");
+        if (!token) {
+          navigate("/auth");
+          return;
+        }
+
+        // Prepare order items
+        const orderItems = cartItems.map(item => ({
+          productId: item.productId._id,
+          name: item.productId.name,
+          price: item.productId.price,
+          quantity: item.quantity
+        }));
+
+        // Create order data
+        const orderData = {
+          items: orderItems,
+          shippingAddress: checkoutData.shippingAddress,
+          paymentMethod: checkoutData.paymentMethod,
+          totalAmount: calculateTotal()
+        };
+
+        console.log("Sending order data:", orderData);
+
+        // Create order in database
+        const response = await axios.post(
+          'http://localhost:5000/api/orders', 
+          orderData, 
+          { headers: { "x-access-token": token } }
+        );
+
+        console.log("Order created:", response.data);
+
+        // Clear cart and redirect to success page
         localStorage.removeItem('cartItems');
         updateCartCount(0);
-        navigate('/order-success');
+        navigate('/order-success', { state: { orderId: response.data.orderId } });
       } catch (error) {
         console.error('Order creation failed:', error);
-        setError('Failed to create order. Please try again.');
+        setError(error.response?.data?.error || 'Failed to create order. Please try again.');
       } finally {
         setLoading(false);
       }
     } else {
       // Handle Razorpay payment
       try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+          navigate("/auth");
+          return;
+        }
+
         const scriptLoaded = await loadRazorpayScript();
         if (!scriptLoaded) {
           throw new Error("Razorpay SDK failed to load. Please check your internet connection.");
         }
+
+        // Prepare order data
+        const orderItems = cartItems.map(item => ({
+          productId: item.productId._id,
+          name: item.productId.name,
+          price: item.productId.price,
+          quantity: item.quantity
+        }));
+
+        const orderData = {
+          items: orderItems,
+          shippingAddress: checkoutData.shippingAddress,
+          paymentMethod: "online",
+          totalAmount: calculateTotal()
+        };
 
         const options = {
           key: "rzp_test_qrB3kyGhLYMsvr",
@@ -76,11 +130,22 @@ const OrderSummary = ({ onBack }) => {
           currency: "INR",
           name: "Mithun Electricals",
           description: "Order Payment",
-          handler: function () {
-            // Handle successful payment
-            localStorage.removeItem('cartItems');
-            updateCartCount(0);
-            navigate('/order-success');
+          handler: async function (response) {
+            // On successful payment, save order
+            try {
+              const orderResponse = await axios.post(
+                'http://localhost:5000/api/orders', 
+                orderData, 
+                { headers: { "x-access-token": token } }
+              );
+              
+              // Clear cart and redirect to success page with order ID
+              localStorage.removeItem('cartItems');
+              updateCartCount(0);
+              navigate('/order-success', { state: { orderId: orderResponse.data.orderId } });
+            } catch (err) {
+              setError('Payment successful but order creation failed. Please contact support.');
+            }
           },
           prefill: {
             name: checkoutData.shippingAddress.fullName,
@@ -104,6 +169,7 @@ const OrderSummary = ({ onBack }) => {
     }
   };
 
+  // Rest of your component remains the same
   return (
     <div className="order-summary">
       <h2>Order Summary</h2>

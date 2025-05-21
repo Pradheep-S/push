@@ -15,6 +15,8 @@ import Carts from "./pages/Carts"; // Import the new Carts component
 import { CartProvider } from "./pages/CartContext.jsx"; // Updated path
 import { CheckoutProvider } from './pages/CheckoutContext.jsx'; // Updated path
 import Checkout from './pages/Checkout';
+import OrderSuccess from './pages/OrderSuccess'; // Add this import
+
 function App() {
   return (
     <CartProvider> {/* Wrap the app with CartProvider */}
@@ -81,6 +83,14 @@ function App() {
             element={
               <PrivateRoute>
                 <Checkout />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/order-success"
+            element={
+              <PrivateRoute>
+                <OrderSuccess />
               </PrivateRoute>
             }
           />

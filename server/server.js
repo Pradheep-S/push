@@ -61,6 +61,34 @@ const CartSchema = new mongoose.Schema({
 
 const Cart = mongoose.model("Cart", CartSchema);
 
+// Add this near the top of your file with your other schemas
+
+// Order Schema (if not already defined)
+const OrderSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  items: [
+    {
+      productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
+      name: { type: String, required: true },
+      price: { type: Number, required: true },
+      quantity: { type: Number, required: true },
+    }
+  ],
+  shippingAddress: {
+    fullName: { type: String, required: true },
+    address: { type: String, required: true },
+    city: { type: String, required: true },
+    state: { type: String, required: true },
+    pincode: { type: String, required: true },
+    phone: { type: String, required: true }
+  },
+  paymentMethod: { type: String, required: true },
+  totalAmount: { type: Number, required: true },
+  orderStatus: { type: String, default: "Pending" },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const Order = mongoose.model("Order", OrderSchema);
 // Middleware to verify JWT
 const verifyToken = (req, res, next) => {
   const token = req.headers["x-access-token"];
@@ -354,6 +382,79 @@ app.delete("/api/cart/remove/:productId", verifyToken, async (req, res) => {
   }
 });
 
+// Add this after your cart routes
+
+// Create Order
+app.post("/api/orders", verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { items, shippingAddress, paymentMethod, totalAmount } = req.body;
+    
+    if (!items || !Array.isArray(items) || !shippingAddress || !paymentMethod) {
+      return res.status(400).json({ error: "Missing required order information" });
+    }
+    
+    // Create new order
+    const order = new Order({
+      userId,
+      items,
+      shippingAddress,
+      paymentMethod,
+      totalAmount
+    });
+    
+    await order.save();
+    
+    // Clear the user's cart after successful order
+    await Cart.findOneAndUpdate(
+      { userId },
+      { $set: { items: [] } }
+    );
+    
+    console.log("Order created successfully:", order._id); // Add logging to debug
+    
+    res.status(201).json({ 
+      success: true,
+      orderId: order._id,
+      message: "Order placed successfully" 
+    });
+  } catch (err) {
+    console.error("Order creation error:", err); // Add error logging to debug
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get Order History for User
+app.get("/api/orders/history", verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const orders = await Order.find({ userId }).sort({ createdAt: -1 });
+    res.json(orders);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get a specific order by ID
+app.get("/api/orders/:id", verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const orderId = req.params.id;
+    
+    const order = await Order.findOne({ 
+      _id: orderId,
+      userId: userId 
+    });
+    
+    if (!order) {
+      return res.status(404).json({ error: "Order not found" });
+    }
+    
+    res.json(order);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 // Initialize Default Admin
 const initializeDefaultAdmin = async () => {
   try {
